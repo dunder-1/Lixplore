@@ -1,0 +1,1 @@
+@py.exe -m streamlit run "C:\Users\Esad\Documents\Uni\04_WS 20 21\Masterarbeit\Code\Lixplore\app.py" %*

@@ -1,0 +1,15 @@
+Label type,Removed Stopwords,Stemming Algorithm,Train/Test split in %,Accuracy
+event,yes,PorterStemmer,20/80,0.22
+event,yes,PorterStemmer,40/60,0.13
+event,yes,PorterStemmer,60/40,0.15
+event,yes,PorterStemmer,80/20,0.15
+event,yes,WordNetLemmatizer,40/60,0.17
+event,yes,WordNetLemmatizer,60/40,0.15
+event,yes,WordNetLemmatizer,80/20,0.12
+event,no,PorterStemmer,20/80,0.17
+event,no,PorterStemmer,40/60,0.12
+event,no,PorterStemmer,60/40,0.12
+event,no,PorterStemmer,80/20,0.14
+event,no,WordNetLemmatizer,20/80,0.17
+event,no,WordNetLemmatizer,40/60,0.14
+event,no,WordNetLemmatizer,60/40,0.12
