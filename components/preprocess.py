@@ -1,70 +1,101 @@
 import pdfplumber
-import os, json, re
+from nltk import pos_tag
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+import re
+from dataclasses import dataclass
 
-# data.json
-def readRawData():
-    with open("../data.json", encoding="utf-8") as file:
-        return json.load(file)
+STOPWORDS = set(stopwords.words("english"))
 
-def transformData(data):
-    out_data = []
+@dataclass
+class PdfFile:
+    """Represents the pdf file and its extracted text"""
+    path: str                   # path to pdf file
+    citation: str               # citation nr e.g. [52]
+    extracted_pages: list[str]  # list of pages with extracted text
+    is_two_column: bool         # True if file is in two column format
 
-    for event in data:
-        for activity in event["LearningActivities"]:
-            for indicator in activity["indicator"]:
+    def __repr__(self):
+        return f"PdfFile(citation={self.citation}, is_two_column={self.is_two_column})"
 
-                citation = set(re.findall(r"\[[\d]*\]", indicator["indicatorName"])).pop()
-                
-                metrics = [m.replace(citation[:-1], "").strip() for m in indicator["metrics"].split("],")]
-                metrics[-1] = metrics[-1][:-1].strip()
-                
-                for metric in metrics:
+    @classmethod
+    def read(cls, file_path:str):
+        """
+        Constructs a PdfFile object by file_path.
 
-                    out_data.append({
-                            "event": event["LearningEvents"],
-                            "activity": activity["Name"],
-                            "indicator": indicator["indicatorName"],
-                            "metric": metric,
-                            "citation": citation
-                        })
+        :param file_path: string that represents path to file (OR BytesIO object)
 
-    return out_data
+        :return: PdfFile object 
+        """
+        citation = cls.getCitation(file_path) if isinstance(file_path, str) else ""
 
+        with pdfplumber.open(file_path) as pdf:
 
-# pdf files
-def getPdfFiles():
-    return ["../pdfs/"+file_name for file_name in os.listdir("../pdfs/") if file_name[-3:] == "pdf"]
+            out_pages = []
+            page = pdf.pages[0]
+            is_two_column = page.crop((0.49 * page.width, 0.5 * page.height, 0.5 * page.width, 0.51 * page.height)).extract_text() == ""
 
-def getExtractedFiles():
-    return ["../pdfs/extracted_text/"+file_name for file_name in os.listdir("../pdfs/extracted_text/") if file_name[-3:] == "txt"]
+            # pdf is two-column
+            if is_two_column:
+                for page in pdf.pages:
+                    left = page.crop((0, 0, 0.5 * page.width, page.height))
+                    right = page.crop((0.5 * page.width, 0, page.width, page.height))
+                    out_pages.append(left.extract_text(x_tolerance=1) + " " + right.extract_text(x_tolerance=1))
+            
+            # pdf is single-column
+            else:
+                for page in pdf.pages:
+                    out_pages.append(page.extract_text(x_tolerance=1))
 
-def isPdfTwoColumn(pdf_file_path):
-    with pdfplumber.open(pdf_file_path) as pdf:
-        page = pdf.pages[0]
-        return page.crop((0.49 * page.width, 0.5 * page.height, 0.5 * page.width, 0.51 * page.height)).extract_text() == ""
+        return cls(path=file_path,
+                   citation=citation, 
+                   extracted_pages=out_pages,
+                   is_two_column=is_two_column)
 
-def extractPdfText(pdf_file_path):
+    @staticmethod
+    def getCitation(file_path:str) -> str:
+        """Returns the citation nr of a file path"""
+        return re.findall(r"\[[\d]*\]", file_path).pop()
 
-    with pdfplumber.open(pdf_file_path) as pdf:
+    def filterPages(self, remove_stopwords:bool, stemming_algo:str) -> list[str]:
+        """
+        Filters the text of self.extracted_pages according to the parameters
 
-        out_pages = []
+        :param remove_stopwords: removes stop words if True
+        :param stemming_algo: stems every word according to the passed stemmer
 
-        page = pdf.pages[0]
-        is_two_column = page.crop((0.49 * page.width, 0.5 * page.height, 0.5 * page.width, 0.51 * page.height)).extract_text() == ""
+        :return: the filtered pages
+        """
+        def tagToWordNetTag(tag:str):
+            mappy = {"J":"a", "V":"v", "R":"r", "N":"n"}
+            return mappy[tag[0]] if tag[0] in mappy else "n"
 
-        # pdf is two-column
-        if is_two_column:
-            for page in pdf.pages:
-                left = page.crop((0, 0, 0.5 * page.width, page.height))
-                right = page.crop((0.5 * page.width, 0, page.width, page.height))
-                out_pages.append(left.extract_text(x_tolerance=1) + " " + right.extract_text(x_tolerance=1))
-        
-        # pdf is single-column
-        else:
-            for page in pdf.pages:
-                out_pages.append(page.extract_text(x_tolerance=1))
+        filtered_pages = []
 
-        return out_pages
+        for page_text in self.extracted_pages:
 
+            word_tokens = word_tokenize(page_text)
 
-# rest
+            if stemming_algo == "PorterStemmer":
+                if remove_stopwords:
+                    filtered_page = [PorterStemmer().stem(w.lower()) for w in word_tokens if w.lower() not in STOPWORDS]
+                else:
+                    filtered_page = [PorterStemmer().stem(w.lower()) for w in word_tokens]
+            
+            elif stemming_algo == "WordNetLemmatizer":
+                tagged_tokens = pos_tag(word_tokens)
+                if remove_stopwords:
+                    filtered_page = [WordNetLemmatizer().lemmatize(w.lower(), pos=tagToWordNetTag(tag)) for w, tag in tagged_tokens if w.lower() not in STOPWORDS]
+                else:
+                    filtered_page = [WordNetLemmatizer().lemmatize(w.lower(), pos=tagToWordNetTag(tag)) for w, tag in tagged_tokens]        
+            
+            else:
+                if remove_stopwords:
+                    filtered_page = [w.lower() for w in word_tokens if w.lower() not in STOPWORDS]
+                else:
+                    filtered_page = [w.lower() for w in word_tokens]
+
+            filtered_pages.append(" ".join(filtered_page))
+
+        return filtered_pages

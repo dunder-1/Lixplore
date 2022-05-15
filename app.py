@@ -1,6 +1,7 @@
 import streamlit as st
 import nltk
-import pages, helpy, components
+import pages, helpy
+from components.util import loadFiles, transformData, readRawData
 import pickle
 
 st.set_page_config(page_title="Lixplore", page_icon="🔍", initial_sidebar_state="expanded")
@@ -32,9 +33,10 @@ if "cur_page" not in st.session_state:
     st.session_state.cur_page = "start"
     helpy.greet()
 if "data" not in st.session_state:
-    st.session_state.data = components.transformData(components.readRawData())
+    st.session_state.data = transformData(readRawData())
 if "pdf_files" not in st.session_state:
-    st.session_state.pdf_files = components.getPdfFiles()
+    st.write("loaded new pdf_files")
+    st.session_state.pdf_files = loadFiles("../pdfs/", "pdf")
 if "references" not in st.session_state:
     st.session_state.references = helpy.getReferences()
 if "stopwords" not in st.session_state:

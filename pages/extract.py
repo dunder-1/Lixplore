@@ -1,7 +1,11 @@
 import streamlit as st
 import pdfplumber
 import os, pickle
-import helpy, components
+import helpy
+from components.preprocess import PdfFile
+from components.train import getLabels
+from components.evaluation import ClassifierFile, loadClassifier
+from components.util import loadFiles
 
 def renderPage():
     st.title("📄 Extract Learning Events of PDFs")
@@ -25,9 +29,6 @@ def renderPage():
         elif selection_method == "Upload PDF":
             pdf_file = st.file_uploader("Upload PDF File:", ["pdf"])
 
-        st.caption("Configuration of selected classifier:")
-        #st.code(f"remove_stopwords = {remove_stopwords}\nstemming_algo = {stemming_algo}")
-
         st.caption("What do you want to extract?")
         col1, col2, col3, col4 = st.columns(4)
         extract_what = {
@@ -41,34 +42,34 @@ def renderPage():
 
             if not any(extract_what.values()):
                 st.warning("Check at least one box!")
+            elif not pdf_file:
+                st.error("Please provide a pdf file!")
             else:
 
-                if selection_method == "Existing PDF":
+                for label_type in [key for key in extract_what if extract_what[key]]:
+                    classifier = loadClassifier(label_type)
+                    guessed_label = classifier.classifyPDF(pdf_file)
 
-                    for label_type in [key for key in extract_what if extract_what[key]]:
-                        classifier, remove_stopwords, stemming_algo = components.loadClassifier(st.session_state.best_classifier[label_type])
-                        guessed_label, pages = components.classifyPDF(classifier, remove_stopwords, stemming_algo, pdf_file)
-                        st.write(f"Most probable {label_type}: **{guessed_label}**")
-                        actual_labels = components.filterDataByCitation(st.session_state.data, pdf_file[8:].split()[0], label_type)
-                        st.write(f"For label type {label_type}")
+                    st.write(f"Most probable {label_type}: **{guessed_label}**")
+                    
+                    if selection_method == "Existing PDF":
+                        actual_labels = getLabels(st.session_state.data, PdfFile.getCitation(pdf_file), label_type)
                         if guessed_label in actual_labels:
                             st.success("This is correct!")
                         else:
                             st.error("Unfortunately not correct!")
 
                         st.write(f"The actual {label_type}s are:", actual_labels)
-                        st.write("---")
-                    
-                    
+                        st.write("---")                  
 
-                    
+                #with st.expander("Show extracted text"):
+                #    for i, p in enumerate(PdfFile.read(pdf_file).extracted_pages, start=1):
+                #        st.subheader(f"Page {i}")
+                #        st.write(p)
 
-                with st.expander("Show extracted text"):
-                    for i, p in enumerate(pages, start=1):
-                        st.subheader(f"Page {i}")
-                        st.write(p)
-
+                """
                 with st.expander("Show extracted text after pre processing"):
                     for i, p in enumerate(components.filterPages(pages, out_type=list, stemming_algo=stemming_algo), start=1):
                         st.subheader(f"Page {i}")
                         st.write(p)
+                """
