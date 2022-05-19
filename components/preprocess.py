@@ -1,5 +1,5 @@
 import pdfplumber
-from nltk import pos_tag
+from nltk import pos_tag, FreqDist
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer, WordNetLemmatizer
@@ -7,6 +7,9 @@ import re
 from dataclasses import dataclass
 
 STOPWORDS = set(stopwords.words("english"))
+PUNCTUATION = [",", ".", "(", ")", "[", "]", "’", ":", "%", "*", "&", "?", "!", ";"]
+DIGITS = [str(i) for i in range(10)]
+TRASH = PUNCTUATION + DIGITS
 
 @dataclass
 class PdfFile:
@@ -58,44 +61,69 @@ class PdfFile:
         """Returns the citation nr of a file path"""
         return re.findall(r"\[[\d]*\]", file_path).pop()
 
-    def filterPages(self, remove_stopwords:bool, stemming_algo:str) -> list[str]:
-        """
-        Filters the text of self.extracted_pages according to the parameters
 
-        :param remove_stopwords: removes stop words if True
-        :param stemming_algo: stems every word according to the passed stemmer
+def getFilteredWordTokens(pages:list[str], remove_stopwords:bool, stemming_algo:str, extra_removal:list) -> list[str]:
+    """
+    Filters words of pages according to the passed configuration parameters
 
-        :return: the filtered pages
-        """
-        def tagToWordNetTag(tag:str):
-            mappy = {"J":"a", "V":"v", "R":"r", "N":"n"}
-            return mappy[tag[0]] if tag[0] in mappy else "n"
 
-        filtered_pages = []
+    :param pages: list that represents the extracted text (e.g. PdfFile().extracted_pages)
+    :param remove_stopwords: True if stopwords should be removed
+    :param stemming_algo: the stemming algorithm (one of ["PorterStemmer", "WordNetLemmatizer"])
+    :param extra_removal: additional strings that will be removed
 
-        for page_text in self.extracted_pages:
+    :return: a list of word tokens filtered & stemmed by the configuration parameters
+    """
+    def tagToWordNetTag(tag:str):
+        """Helper function for correct part of speech tagging"""
+        mappy = {"J":"a", "V":"v", "R":"r", "N":"n"}
+        return mappy[tag[0]] if tag[0] in mappy else "n"
 
-            word_tokens = word_tokenize(page_text)
+    for page in pages:
+        word_tokens = word_tokenize(page)
 
-            if stemming_algo == "PorterStemmer":
-                if remove_stopwords:
-                    filtered_page = [PorterStemmer().stem(w.lower()) for w in word_tokens if w.lower() not in STOPWORDS]
-                else:
-                    filtered_page = [PorterStemmer().stem(w.lower()) for w in word_tokens]
-            
-            elif stemming_algo == "WordNetLemmatizer":
-                tagged_tokens = pos_tag(word_tokens)
-                if remove_stopwords:
-                    filtered_page = [WordNetLemmatizer().lemmatize(w.lower(), pos=tagToWordNetTag(tag)) for w, tag in tagged_tokens if w.lower() not in STOPWORDS]
-                else:
-                    filtered_page = [WordNetLemmatizer().lemmatize(w.lower(), pos=tagToWordNetTag(tag)) for w, tag in tagged_tokens]        
-            
+        if stemming_algo == "PorterStemmer":
+            if remove_stopwords:
+                return [PorterStemmer().stem(w.lower()) for w in word_tokens if w.lower() not in STOPWORDS and w.lower() not in extra_removal]
             else:
-                if remove_stopwords:
-                    filtered_page = [w.lower() for w in word_tokens if w.lower() not in STOPWORDS]
-                else:
-                    filtered_page = [w.lower() for w in word_tokens]
+                return [PorterStemmer().stem(w.lower()) for w in word_tokens if w.lower() not in extra_removal]
 
-            filtered_pages.append(" ".join(filtered_page))
+        elif stemming_algo == "WordNetLemmatizer":
+            tagged_tokens = pos_tag(word_tokens)
+            if remove_stopwords:
+                return [WordNetLemmatizer().lemmatize(w.lower(), pos=tagToWordNetTag(tag)) for w, tag in tagged_tokens if w.lower() not in STOPWORDS and w.lower() not in extra_removal]
+            else:
+                return [WordNetLemmatizer().lemmatize(w.lower(), pos=tagToWordNetTag(tag)) for w, tag in tagged_tokens if w.lower() not in extra_removal]
 
-        return filtered_pages
+        else:
+            if remove_stopwords:
+                return [w.lower() for w, tag in word_tokens if w.lower() not in STOPWORDS and w.lower() not in extra_removal]
+            else:
+                return [w.lower() for w, tag in word_tokens if w.lower() not in extra_removal]
+
+
+
+def getMostCommonFeatures(pdf_files: list[PdfFile], method="bow", cut_off=500, remove_stopwords=True, stemming_algo="PorterStemmer", extra_removal=TRASH) -> list[list]:
+    """
+    Determine the most common features of all pdf files by using a passed method and cut off
+
+    :param pdf_files: list of extracted PdfFile objects
+    :param method: the used calculation method (one of ["bow"])
+    :param cut_off: return how many features
+    :param remove_stopwords: True if stopwords should be removed
+    :param stemming_algo: the stemming algorithm (one of ["PorterStemmer", "WordNetLemmatizer"])
+    :param extra_removal: additional strings that will be removed
+
+    :return: a list with the most common features (each element is list with [feature, count])
+    """
+
+    if method == "bow":
+        all_words = []
+        for pdf_file in pdf_files:
+            all_words.extend([w for w in getFilteredWordTokens(pdf_file.extracted_pages, remove_stopwords, stemming_algo, extra_removal)])
+        
+        word_features = FreqDist(w for w in all_words).most_common()[:cut_off]
+
+    return word_features
+
+        

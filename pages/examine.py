@@ -2,11 +2,13 @@ import streamlit as st
 import pdfplumber
 import nltk
 import helpy, components
-from components.preprocess import PdfFile
+from components.preprocess import PdfFile, getMostCommonFeatures
+from components.train import LabeledText
+from components.evaluation import loadClassifier
 from components.util import loadFiles
 import re, pickle, random
 
-METHODS = ["Introduction", "Look into dataset", "View metrics by literature", "Extract text of pdf", "Show info about classifier"]#, "Determine best training setting"]
+METHODS = ["Introduction", "Look into dataset", "View metrics by literature", "Extract text of pdf", "Show word features", "Show info about classifier"]
 
 def renderPage():
     st.title("🕵️ Get Insights")
@@ -31,7 +33,7 @@ def renderPage():
             """)
 
         file_path = st.selectbox("Select PDF File:", st.session_state.pdf_files)
-        tbl_info = [i for i in st.session_state.data if PdfFile.getCitation(file_path) in i["indicator"]]
+        tbl_info = [i for i in st.session_state.data if PdfFile.getCitation(file_path) in i["citation"]]
 
         if tbl_info:
             st.caption(f"Found {len(tbl_info)} metrics")
@@ -47,17 +49,23 @@ def renderPage():
         st.caption("(Pdf is two column)") if pdf_file.is_two_column else st.caption("(Pdf is single column)")
         st.write("---")
 
+
         for page in pdf_file.extracted_pages:
             st.write(page)
+
+    elif method == "Show word features":
+
+        #with open("../pdfs/extracted_text/[99] 2883851.2883907.pickle", "rb") as file:
+        #    st.write(pickle.load(file))
+        st.markdown("<style>tbody th {display:none} .blank {display:none}</style> ", unsafe_allow_html=True)
+        st.table([{"word":i[0], "count":i[1]} for i in st.session_state.most_common_features])
+
 
     elif method == "Show info about classifier":
 
         st.write("I found these classifiers:")
 
-        classifiers = []
-        for file_path in loadFiles("../classifier/", "pickle"):
-            with open(file_path, "rb") as file:
-                classifiers.append(pickle.load(file).asDictTable())
+        classifiers = loadClassifier("*")
 
         st.markdown("<style>tbody th {display:none} .blank {display:none}</style> ", unsafe_allow_html=True)
-        st.table(sorted(classifiers, key=lambda x: x["accuracy"], reverse=True))
+        st.table(sorted([i.asDictTable() for i in classifiers], key=lambda x: x["accuracy"], reverse=True))

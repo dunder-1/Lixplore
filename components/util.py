@@ -1,12 +1,20 @@
-import os, json, re
+import os, json, re, pickle
 
-def loadFiles(folder:str, extension:str) -> list[str]:
+def loadFiles(folder:str, extension:str, open_pickle=False) -> list[str]:
     """Loads all files found in 'folder' ending with 'extension'
     
     :param folder: e.g. "../pdfs/" or "../pdfs/extracted_text/"
     
     :return: a list with all the matching files
     """
+    if open_pickle:
+        _ = []
+        for file_name in os.listdir(folder):
+            if file_name.endswith(extension):
+                with open(folder+file_name, "rb") as file:
+                    _.append(pickle.load(file))
+        return _
+        
     return [folder+file_name for file_name in os.listdir(folder) if file_name.endswith(extension)]
 
 
@@ -65,7 +73,7 @@ def transformData(data):
                     out_data.append({
                             "event": event["LearningEvents"],
                             "activity": activity["Name"],
-                            "indicator": indicator["indicatorName"],
+                            "indicator": indicator["indicatorName"].replace(citation, ""),
                             "metric": metric,
                             "citation": citation
                         })

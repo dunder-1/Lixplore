@@ -48,18 +48,25 @@ def renderPage():
 
                 for label_type in [key for key in extract_what if extract_what[key]]:
                     classifier = loadClassifier(label_type)
-                    guessed_label = classifier.classifyPDF(pdf_file)
+                    guessed_labels = classifier.classifyPDF(pdf_file, st.session_state.most_common_features)
+                    guessed_labels_sorted = sorted(guessed_labels.__dict__["_prob_dict"].items(), key=lambda x:x[1], reverse=True)
 
-                    st.write(f"Most probable {label_type}: **{guessed_label}**")
+                    st.write(f"Most probable {label_type}s:")
+                    st.caption("Hint: Values closer to 0 are better")
+                    
+                    
+                    st.table([{"label":i[0], "prediction":i[1]} for i in guessed_labels_sorted if i[1] > -45.0])
                     
                     if selection_method == "Existing PDF":
                         actual_labels = getLabels(st.session_state.data, PdfFile.getCitation(pdf_file), label_type)
+                        """
                         if guessed_label in actual_labels:
                             st.success("This is correct!")
                         else:
                             st.error("Unfortunately not correct!")
+                        """
 
-                        st.write(f"The actual {label_type}s are:", actual_labels)
+                        st.write("Label(s) according to the data:", actual_labels)
                         st.write("---")                  
 
                 #with st.expander("Show extracted text"):

@@ -1,23 +1,20 @@
 import streamlit as st
 import nltk
-import helpy, components
+import pickle
+import helpy
+from components import *
 
-
+def setFeatures(word_tokens:list[str], mcf):
+    word_tokens = set(word_tokens)
+    features = {}
+    for word, count in mcf:
+        features[f"contains({word})"] = word in word_tokens
+    return features
 
 def renderPage():
     st.title("🧸 Playground")
 
-    st.write("You can test diffrent algorithms here.")
+    with open("../classifier/event/labeled_literature_rmsw_WordNetLemmatizer.pickle", "rb") as file:
+        x = pickle.load(file)
 
-
-    st.code('components.filterSinglePage(page, remove_stopwords=True, stemming_algo="PorterStemmer")')
-
-    st.write("page =")
-    page = st.text_input("Text to filter:")
-    remove_stopwords = st.checkbox("Remove Stopwords?")
-    stemming_algo = st.radio("Select stemming algo:", [None]+components.STEMMING_ALGOS)
-
-    st.write("Output =")
-    st.write(components.filterSinglePage(page, remove_stopwords=remove_stopwords, stemming_algo=stemming_algo))
-
-    st.write(components.filterPages([page], out_type=str, remove_stopwords=remove_stopwords, stemming_algo=stemming_algo))
+    st.write(x.labeled_literature[1])
