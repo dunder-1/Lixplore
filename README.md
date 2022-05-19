@@ -57,13 +57,13 @@ If done correctly your browser should automatically run and navigate to `http://
 
 Now you should see this page:
 
-![image-20220519121811141](img\tut_landing_page.png)
+![image-20220519121811141](/img/tut_landing_page.png)
 
 ## Train a classifier
 
 To train a classifier click on `Exercise` in the navigation bar on the left. You should see this page:
 
-![image-20220519122304588](img\tut_training.png)
+![image-20220519122304588](/img/tut_training.png)
 
 There you have three checkboxes:
 
@@ -82,11 +82,11 @@ Please do the following tasks:
 
 1. Check both `Extract text` and `Label text` and click on `Start`:
 
-![image-20220519123814125](img\tut_labeling.png)
+![image-20220519123814125](/img/tut_labeling.png)
 
 2. After this is finished, click on `Run Training` (you have to uncheck the other two options first), choose `event` and click on start:
 
-![image-20220519124634520](img\tut_run_training.png)
+![image-20220519124634520](/img/tut_run_training.png)
 
 3. Now rerun step 2 again for every other label type (`metric` might take up to 30 minutes!)
 
@@ -96,7 +96,7 @@ Please do the following tasks:
 
 Choose `Extract` in the navigation bar and you should be see this screen:
 
-![image-20220519124429056](img\tut_predict.png)
+![image-20220519124429056](/img/tut_predict.png)
 
 To predict labels of new pdf files:
 
@@ -106,7 +106,7 @@ To predict labels of new pdf files:
 
 Your output should look like this (Depends on what you chose in step 2):
 
-![image-20220519125119392](img\tut_extraction_output.png)
+![image-20220519125119392](/img/tut_extraction_output.png)
 
 This shows the most probable label with a prediction value. This number represents the distance of the assigned label to the learned feature-label pairs of the classifier. Therefore a value closer to 0.0 is better. The cut off here is -45.0 to provide a variety of different labels.
 
