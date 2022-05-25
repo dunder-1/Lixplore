@@ -1,5 +1,3 @@
-import nltk
-import os
 from . import *
 from dataclasses import dataclass
 

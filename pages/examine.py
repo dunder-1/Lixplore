@@ -49,7 +49,6 @@ def renderPage():
         st.caption("(Pdf is two column)") if pdf_file.is_two_column else st.caption("(Pdf is single column)")
         st.write("---")
 
-
         for page in pdf_file.extracted_pages:
             st.write(page)
 

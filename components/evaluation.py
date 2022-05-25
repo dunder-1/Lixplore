@@ -1,6 +1,7 @@
-import nltk
-import os, pickle, random
+from nltk import NaiveBayesClassifier
+from nltk import classify
 from . import *
+import pickle, random
 from dataclasses import dataclass
 
 CLASSIFIER_TYPES = ["event", "activity", "indicator", "metric"]
@@ -13,7 +14,7 @@ class ClassifierFile:
     remove_stopwords: bool   # True if stopwords are removed
     stemming_algo: str       # the chosen stemming algorithm (one of ["PorterStemmer", "WordNetLemmatizer"])
     extra_removal: list[str] # additional strings that will be removed
-    classifier: nltk.NaiveBayesClassifier # the trained classifier
+    classifier: NaiveBayesClassifier # the trained classifier
     train_test_split: int    # % of texts that are used for training (100-train_test_split for testing)
     accuracy: float          # accuracy of the trained classifier (rounded to 2 decimals)
 
@@ -36,8 +37,8 @@ class ClassifierFile:
             return l[:split*len(l)//100], l[split*len(l)//100:]
 
         train_set, test_set = splitList(feature_set, train_test_split)
-        classifier = nltk.NaiveBayesClassifier.train(train_set)
-        accuracy = round(nltk.classify.accuracy(classifier, test_set), 2)
+        classifier = NaiveBayesClassifier.train(train_set)
+        accuracy = round(accuracy(classifier, test_set), 2)
 
         return cls(path=f"../classifier/{lab_lit.label_type}_classifier.pickle",
                    classifier=classifier, 

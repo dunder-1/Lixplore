@@ -7,9 +7,9 @@ import re
 from dataclasses import dataclass
 
 STOPWORDS = set(stopwords.words("english"))
-PUNCTUATION = [",", ".", "(", ")", "[", "]", "’", ":", "%", "*", "&", "?", "!", ";"]
-DIGITS = [str(i) for i in range(10)]
-TRASH = PUNCTUATION + DIGITS
+PUNCTUATION = {",", ".", "(", ")", "[", "]", "’", ":", "%", "*", "&", "?", "!", ";", "@"}
+DIGITS = {str(i) for i in range(10)}
+TRASH = PUNCTUATION.union(DIGITS)
 
 @dataclass
 class PdfFile:
