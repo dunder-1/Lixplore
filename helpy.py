@@ -11,13 +11,19 @@ import components
 def greet(with_hello=True):
     st.header("Hello 👋") if with_hello else None
     st.write("This tool provides the ability to automatically extract metrics of scientific literature.")
+    st.subheader("Tutorial")
+    st.write("""
+        Use the links in the navigation bar on the left.
+        - Examine: Dive into the data and get insights about the classifier
+        - Exercise: Extract and label the text and/or train a classifier
+        - Extract: Use the trained classifier to look for relevant information in the text
+    """)
     st.subheader("The algorithm")
     st.write("""
         The algorithm performs the following steps:
         1. Extract the text of the literature (in PDF format)
-        2. Identify specific words (metrics and/or indicators) from the text.
-        3. Categorize the metrics into indicators
-        4. Categorize the indicators into learning activities of the learning events
+        2. Search for relevant words in the extracted text
+        2. Identify learning metrics/indicators/activities/events from the text.
         """)
     st.write("[Github Repo](https://github.com/dunder-1/Lixplore)")
 

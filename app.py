@@ -26,7 +26,7 @@ st.markdown("<style>"+"".join(THEME)+"</style>", unsafe_allow_html=True)
 
 # ADD NEW PAGE HERE:
 # (name according to .py file in pages subfolder!)
-page_list = ["examine", "extract", "exercise"]#, "playground"]
+page_list = ["examine", "exercise", "extract"]
 # Also add new page in pages/__init__.py !!!
 
 ### SESSION STATE ###
@@ -36,13 +36,8 @@ if "cur_page" not in st.session_state:
 if "data" not in st.session_state:
     st.session_state.data = transformData(readRawData())
 if "pdf_files" not in st.session_state:
-    st.write("loaded new pdf_files")
     st.session_state.pdf_files = loadFiles("../pdfs/", "pdf")
-if "references" not in st.session_state:
-    st.session_state.references = helpy.getReferences()
-if "most_common_features" not in st.session_state:
-    st.session_state.most_common_features = getMostCommonFeatures(loadFiles("../pdfs/extracted_text/", "pickle", open_pickle=True))
-    
+   
 st.experimental_set_query_params(page=st.session_state.cur_page)
 
 ### PAGE & SIDEBAR CONTENT ###

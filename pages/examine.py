@@ -52,14 +52,6 @@ def renderPage():
         for page in pdf_file.extracted_pages:
             st.write(page)
 
-    elif method == "Show word features":
-
-        #with open("../pdfs/extracted_text/[99] 2883851.2883907.pickle", "rb") as file:
-        #    st.write(pickle.load(file))
-        st.markdown("<style>tbody th {display:none} .blank {display:none}</style> ", unsafe_allow_html=True)
-        st.table([{"word":i[0], "count":i[1]} for i in st.session_state.most_common_features])
-
-
     elif method == "Show info about classifier":
 
         st.write("I found these classifiers:")

@@ -2,26 +2,24 @@ import streamlit as st
 import pdfplumber
 import os, pickle
 import helpy
-from components.preprocess import PdfFile
+from components.preprocess import PdfFile, getMostCommonFeatures
 from components.train import getLabels
 from components.evaluation import ClassifierFile, loadClassifier
 from components.util import loadFiles
 
 def renderPage():
-    st.title("📄 Extract Learning Events of PDFs")
+    st.title("📄 Extract information of PDFs")
 
     st.write("""
             Choose a pdf file to read the text and output the most probable Learning Event. 
-            The following operations will be executed on the content of the pdf:
+            The following operations might be executed on the content of the pdf (depending on the trained classifier):
             - Tokenization
-            - Removal of Stopwords
+            - Removal of Stopwords and additional words
             - Stemming
             It might take a moment.
             """)
 
-    #st.markdown("<style> .st-co, .st-dy, .st-bd {flex-direction: row; gap: 20px}</style>", unsafe_allow_html=True)
     selection_method = st.radio("Choose the selection method:", ["Existing PDF", "Upload PDF"])
-    #classifier_type = st.selectbox("Select Classifier type", ["event", "indicator", "activity", "metric"])
 
     with st.form("extract"):
         if selection_method == "Existing PDF":
@@ -48,7 +46,10 @@ def renderPage():
 
                 for label_type in [key for key in extract_what if extract_what[key]]:
                     classifier = loadClassifier(label_type)
-                    guessed_labels = classifier.classifyPDF(pdf_file, st.session_state.most_common_features)
+                    most_common_features = getMostCommonFeatures(loadFiles("../pdfs/extracted_text/", "pickle", open_pickle=True),
+                                                                 remove_stopwords=classifier.remove_stopwords,
+                                                                 stemming_algo=classifier.stemming_algo)
+                    guessed_labels = classifier.classifyPDF(pdf_file, most_common_features)
                     guessed_labels_sorted = sorted(guessed_labels.__dict__["_prob_dict"].items(), key=lambda x:x[1], reverse=True)
 
                     st.write(f"Most probable {label_type}s:")

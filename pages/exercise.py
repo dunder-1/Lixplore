@@ -1,7 +1,7 @@
 import streamlit as st
 import nltk
 import helpy
-from components.preprocess import PdfFile, TRASH
+from components.preprocess import PdfFile, TRASH, getMostCommonFeatures
 from components.train import LABEL_TYPES, STEMMING_ALGOS, LabeledLiteratureFile
 from components.evaluation import ClassifierFile
 from components.util import loadFiles
@@ -12,19 +12,31 @@ def renderPage():
 
     st.write("""
             The machine learning algorithm can be trained here. It is necessary to
-            1. add the new document(s) in the folder `../pdfs/` and
-            2. to expand the file `../data.json` with the documents metrics, indicators, activities and events.
-            If this is done correctly the number of found pdfs below should be updated (default is 97 pdfs).
+            1. add the new document(s) in the folder `../pdfs/` 
+               - (please use the correct naming convention: "[x] name.pdf" where x is the citation nr)
+            2. expand the file `../data.json` with the documents metrics, indicators, activities and events.
+            If this is done correctly the number of found pdfs below should be updated (default is 98 pdfs).
             """)
-    st.write("Finally a click on *Start Training* starts the training process. It might take a moment.")
+    st.write("Finally a click on *Start* starts the selected process. It might take a moment.")
 
     col1, col2= st.columns(2)
     col1.caption("Preprocessing:")
     run_training = False
-    extract_pdf = col1.checkbox("Extract text")
-    label_text = col1.checkbox("Label text")
+    extract_pdf = col1.checkbox("Extract text", 
+                                help="""
+                                    Extracts text of all pdf files in ../pdfs/ and saves them into ../pdfs/extracted_text/
+                                """)
+    label_text = col1.checkbox("Label text", 
+                               help="""
+                                    Labels all texts of ../pdfs/extracted_text/ and saves them into ../classifier/<label_type>/
+                               """)
     col2.caption("Training:")
-    run_training = col2.checkbox("Run Training", disabled=label_text or extract_pdf)
+    run_training = col2.checkbox("Run Training", 
+                                 disabled=label_text or extract_pdf,
+                                 help="""
+                                    Runs a training on all labeled literature files of ../classifier/<label_type>/
+                                    and saves the trained classifier into ../classifier/
+                                 """)
 
     classifiers = []
 
@@ -65,6 +77,9 @@ def renderPage():
             if label_text:
                 st.info("Labeling the extracted text...")
                 label_prog_bar, i = st.progress(0), 0
+                most_common_features = getMostCommonFeatures(loadFiles("../pdfs/extracted_text/", "pickle", open_pickle=True),
+                                                             remove_stopwords=remove_stopwords,
+                                                             stemming_algo=stemming_algo)
                 for label_type in label_types:
                     rmsw = "rmsw" if remove_stopwords else "sw"
                     path = f"../classifier/{label_type}/labeled_literature_{rmsw}_{stemming_algo}.pickle"
@@ -73,7 +88,7 @@ def renderPage():
                     for file_path in loadFiles("../pdfs/extracted_text/", "pickle"):
                         with open(file_path, "rb") as file:
                             extracted_text = pickle.load(file)
-                        lab_lit_file.assignLiterature(extracted_text, st.session_state.data, st.session_state.most_common_features)
+                        lab_lit_file.assignLiterature(extracted_text, st.session_state.data, most_common_features)
                         i += 1
                         label_prog_bar.progress(i/(len(loadFiles("../pdfs/extracted_text/", "pickle"))*len(label_types)))
                     

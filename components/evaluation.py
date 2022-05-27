@@ -4,8 +4,6 @@ from . import *
 import pickle, random
 from dataclasses import dataclass
 
-CLASSIFIER_TYPES = ["event", "activity", "indicator", "metric"]
-
 @dataclass
 class ClassifierFile:
     """Represents a classifier file with all the necessary information"""
@@ -38,7 +36,7 @@ class ClassifierFile:
 
         train_set, test_set = splitList(feature_set, train_test_split)
         classifier = NaiveBayesClassifier.train(train_set)
-        accuracy = round(accuracy(classifier, test_set), 2)
+        accuracy = round(classify.accuracy(classifier, test_set), 2)
 
         return cls(path=f"../classifier/{lab_lit.label_type}_classifier.pickle",
                    classifier=classifier, 
@@ -49,7 +47,7 @@ class ClassifierFile:
                    train_test_split=train_test_split, 
                    accuracy=accuracy)
 
-    def classifyPDF(self, pdf_path: str, most_common_features:list[str]) -> str:
+    def classifyPDF(self, pdf_path: str, most_common_features:list[str]) -> dict:
         """
         Classifies a pdf by creating a PdfFile object
         
@@ -79,7 +77,7 @@ class ClassifierFile:
 def loadClassifier(label_type:str) -> ClassifierFile:
     """Loads a trained classifier according to the label_type (one of ["event", "activity", "indicator", "metric"])"""
     if label_type == "*":
-        return [loadClassifier(i) for i in ["event", "activity", "indicator", "metric"]]
+        return [loadClassifier(i) for i in LABEL_TYPES]
 
     with open(f"../classifier/{label_type}_classifier.pickle", "rb") as file:
         return pickle.load(file)
