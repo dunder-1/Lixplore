@@ -8,7 +8,7 @@ from components.evaluation import loadClassifier
 from components.util import loadFiles
 import re, pickle, random
 
-METHODS = ["Introduction", "Look into dataset", "View metrics by literature", "Extract text of pdf", "Show word features", "Show info about classifier"]
+METHODS = ["Introduction", "Look into dataset", "View metrics by literature", "Extract text of pdf", "Show info about classifier"]
 
 def renderPage():
     st.title("🕵️ Get Insights")
@@ -26,7 +26,6 @@ def renderPage():
         st.table(st.session_state.data)
 
     elif method == "View metrics by literature":
-
         st.write("""
             Select a scientific literature to find out which Learning Events, Activities, Indicators and Metrics can be
             found in the text (according to the dataset).

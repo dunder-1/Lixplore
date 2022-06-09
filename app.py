@@ -23,10 +23,9 @@ THEME = [
 ]
 st.markdown("<style>"+"".join(THEME)+"</style>", unsafe_allow_html=True)
 
-
 # ADD NEW PAGE HERE:
 # (name according to .py file in pages subfolder!)
-page_list = ["examine", "exercise", "extract"]
+page_list = ["exercise", "extract", "examine"]
 # Also add new page in pages/__init__.py !!!
 
 ### SESSION STATE ###

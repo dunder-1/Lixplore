@@ -14,9 +14,9 @@ def greet(with_hello=True):
     st.subheader("Tutorial")
     st.write("""
         Use the links in the navigation bar on the left.
-        - Examine: Dive into the data and get insights about the classifier
         - Exercise: Extract and label the text and/or train a classifier
         - Extract: Use the trained classifier to look for relevant information in the text
+        - Examine: Dive into the data and get insights about the classifier
     """)
     st.subheader("The algorithm")
     st.write("""

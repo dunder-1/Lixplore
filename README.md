@@ -1,6 +1,7 @@
 # 🔍 Lixplore
 
 This Tool offers the possibility to automatically:
+
 - read literature from pdf
 - identify key words from text
 - categorize the text based on key words
@@ -8,17 +9,17 @@ This Tool offers the possibility to automatically:
 ## Getting Started
 
 1. The first step is to create the project folder. The name is not important therefore you can name it as you like. I will use the name `main`.
-
+   
    - In the main folder you have to create a folder `pdfs` with a subfolder `extracted text`.
    - In the main folder you have to create a folder `classifier` with subfolders `event`, `activity`, `indicator` and `metric`.
 
 2. Now put the files into the correct location:
-
+   
    - The pdf files have to be inside the folder `main/pdfs/` and **need the correct structure with the citation nr in square brackets in front and a whitespace after it (e.g. [42] xyz.pdf)!** This is very important otherwise the training can't be done correctly.
    - The `data.json` file has to be inside the folder `main/`.
 
 3. Now you can clone the repository into a subfolder e.g. `Lixplore` by 
-
+   
    ```bash
    git clone git@github.com:dunder-1/Lixplore.git
    ```
@@ -29,29 +30,29 @@ This Tool offers the possibility to automatically:
 main
 +-- Lixplore
 +-- pdfs
-	[1] foo.pdf
-	[69] bar.pdf
-	...
-	+-- extracted_text
+    [1] foo.pdf
+    [69] bar.pdf
+    ...
+    +-- extracted_text
 +-- classifier
-	+-- event
-	+-- activity
-	+-- indicator
-	+-- metric
+    +-- event
+    +-- activity
+    +-- indicator
+    +-- metric
 data.json
 ```
 
 5. Navigate into the repository and install the necessary libraries:
-
-   ````bash
+   
+   ```bash
    pip install -r requirements.txt
-   ````
+   ```
 
-6. Run the streamlit application:
-
-   `````bash
-   streamlit run app.py
-   `````
+6. Run this command (to install the necessary nltk files):
+   
+   ```bash
+   python nltk_files.py
+   ```
 
 If done correctly your browser should automatically run and navigate to `http://localhost:8501/?page=start` (if not then you can do it manually).
 
@@ -73,8 +74,6 @@ There you have three checkboxes:
   - For label types please select all four!
 - Run Training: This will run a training by accessing the labeled literature and *learning* how the features and the labels correlate.
   - You can choose different types of labels to train. **Attention:** Training a classifier is a complex task and therefore might take a while (especially when training a `metric`-classifier, it might take up to 30 minutes!) 
-
-
 
 #### Next steps
 
@@ -121,4 +120,3 @@ Python `3.10.1`
 pdfplumber `0.6.2`
 streamlit `1.5.0`
 nltk `3.7`
-

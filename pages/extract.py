@@ -7,6 +7,9 @@ from components.train import getLabels
 from components.evaluation import ClassifierFile, loadClassifier
 from components.util import loadFiles
 
+CUT_OFF = -45.0
+
+
 def renderPage():
     st.title("📄 Extract information of PDFs")
 
@@ -56,7 +59,7 @@ def renderPage():
                     st.caption("Hint: Values closer to 0 are better")
                     
                     
-                    st.table([{"label":i[0], "prediction":i[1]} for i in guessed_labels_sorted if i[1] > -45.0])
+                    st.table([{"label":i[0], "prediction":i[1]} for i in guessed_labels_sorted if i[1] > CUT_OFF])
                     
                     if selection_method == "Existing PDF":
                         actual_labels = getLabels(st.session_state.data, PdfFile.getCitation(pdf_file), label_type)
