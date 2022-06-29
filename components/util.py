@@ -68,12 +68,16 @@ def transformData(data):
                 metrics = [m.replace(citation[:-1], "").strip() for m in indicator["metrics"].split("],")]
                 metrics[-1] = metrics[-1][:-1].strip()
                 
+                #_indicator = indicator["indicatorName"].replace(citation, ",")[:-1] 
+                _indicator = [i.strip() for i in indicator["indicatorName"].split(citation) if i != ""]
+                _indicator = ", ".join(_indicator)
+
                 for metric in metrics:
 
                     out_data.append({
                             "event": event["LearningEvents"],
                             "activity": activity["Name"],
-                            "indicator": indicator["indicatorName"].replace(citation, ""),
+                            "indicator": _indicator,
                             "metric": metric,
                             "citation": citation
                         })
