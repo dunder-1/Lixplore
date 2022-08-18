@@ -30,3 +30,8 @@ def greet(with_hello=True):
 def getReferences():
     with open("../references.txt", "r", encoding="utf-8") as file:
         return [i for i in file.readlines() if len(i) > 3]
+
+def init_session_state(**kwargs):
+    for key, value in kwargs.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
