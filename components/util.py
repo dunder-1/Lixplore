@@ -75,10 +75,10 @@ def transformData(data):
                 for metric in metrics:
 
                     out_data.append({
-                            "event": event["LearningEvents"],
-                            "activity": activity["Name"],
-                            "indicator": _indicator,
-                            "metric": metric,
+                            "event": event["LearningEvents"].lower(),
+                            "activity": activity["Name"].lower(),
+                            "indicator": _indicator.lower(),
+                            "metric": metric.lower(),
                             "citation": citation
                         })
 

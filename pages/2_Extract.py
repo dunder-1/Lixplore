@@ -72,7 +72,13 @@ with st.form("extract"):
     }
 
     if intelligent_extraction:
-        extract_what = {"indicator": True}
+        extract_what = st.radio(
+            "Choose the minimum label type to predict by machine learning. The higher level labels will then be predicted by occurences.",
+            ("activity", "indicator"),
+            help = "For example: If you choose 'indicator' i will predict 'event' and 'activity' by occurences."
+        )
+
+        extract_what = {extract_what: True}
 
 
     if st.form_submit_button("Extract"):            
@@ -106,26 +112,46 @@ with st.form("extract"):
             extraction_done = True
 
 if intelligent_extraction and extraction_done:
-    st.write("According to the extracted indicators, the following activities are the most probable.")
+    extract_what_label = extract_what.popitem()[0]
+    st.write(f"According to the extracted {extract_what_label}, the following higher level labels are the most probable.")
     st.write("You can find a sorted table down below.")
 
     extracted_collection = dict()
     for guessed_label in guessed_labels_filtered:
-        _label = guessed_label["label"]
+        _label = guessed_label["label"].lower()
         for elem in st.session_state.data:
-            if elem["indicator"] == _label:
+            if elem[extract_what_label] == _label:   
                 if elem["event"] not in extracted_collection:
                     extracted_collection[elem["event"]] = dict()
                 if elem["activity"] not in extracted_collection[elem["event"]]:
-                    extracted_collection[elem["event"]][elem["activity"]] = 0
-                extracted_collection[elem["event"]][elem["activity"]] += 1
+                    extracted_collection[elem["event"]][elem["activity"]] = dict()
+                if elem["indicator"] not in extracted_collection[elem["event"]][elem["activity"]]:
+                    extracted_collection[elem["event"]][elem["activity"]][elem["indicator"]] = 0
+                                   
+                extracted_collection[elem["event"]][elem["activity"]][elem["indicator"]] += 1
+
     
-    extracted_collection = [
-        {"Event": event, "Activity": activity, "Occurences": occurences}
-        for event, activities
-        in extracted_collection.items()
-        for activity, occurences in activities.items()
-    ]
+    #st.write(extracted_collection)
+    if extract_what_label == "indicator":
+        extracted_collection = [
+                {
+                    "Event": event, "Activity": activity, 
+                    "Occurences": sum(occurences for _, occurences in indicators.items())    
+                }
+                for event, activities in extracted_collection.items()
+                for activity, indicators in activities.items()
+
+            ]
+
+    elif extract_what_label == "activity":
+        extracted_collection = [
+                {
+                    "Event": event, 
+                    "Occurences": sum(occurences for activity, indicators in activities.items() for _, occurences in indicators.items())
+                }
+                for event, activities in extracted_collection.items()
+            ]
+        
 
     st.table(
         extracted_collection
